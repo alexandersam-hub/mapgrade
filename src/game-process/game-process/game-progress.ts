@@ -135,7 +135,6 @@ export class GameProgress {
             this.game.maps.doubleMap &&
             this.game.maps.doubleMap[i]
           ) {
-
             this.roundGame.doubleTasks[i] =
               this.doubleTasks[
                 this.game.maps.doubleMap[i][this.currentRound / 2]
@@ -385,9 +384,13 @@ export class GameProgress {
     if (this.time > this.game.timeRound * 60) {
       this.nextRound();
     }
-    this.sendMessageAdmin('time', { time: this.game.timeRound * 60 - this.time });
+    this.sendMessageAdmin('time', {
+      time: this.game.timeRound * 60 - this.time,
+    });
     if (this.game.isUserTimerView) {
-      this.sendMessageUsers('time', { time: this.game.timeRound * 60 - this.time });
+      this.sendMessageUsers('time', {
+        time: this.game.timeRound * 60 - this.time,
+      });
     }
   }
   private sendMessageAll(action: string, message: unknown) {
@@ -481,11 +484,16 @@ export class GameProgress {
       });
     }
     const userSocket = this.getUserSocketByUserCode(userGrade.user);
-    this.sendMessageClient(
-      'game',
-      userSocket,
-      this.getGameInfoForUser(userGrade.team, userGrade.type, userGrade.user),
-    );
+    //
+    if (userSocket.socket) {
+      const gameInfo = this.getGameInfoForUser(
+        userSocket.teamCode,
+        userSocket.userType,
+        userSocket.userCode,
+      );
+      userSocket.socket.emit('game', gameInfo);
+    }
+    //
     this.sendGradesAdmins();
   }
   disconnectAdmin(socketId: string) {

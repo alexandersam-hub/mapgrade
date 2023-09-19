@@ -73,10 +73,6 @@ export class GameProcessGateway implements OnGatewayDisconnect {
     }
   }
 
-  // @SubscribeMessage('get-grade')
-  // getGrade(client: Socket, message: { game: string }) {
-  //   this.gameProcessService.sendGrades(client, message.game);
-  // }
   @SubscribeMessage('ping')
   getPing(client: Socket) {
     client.emit('ping', { message: 'pong' });

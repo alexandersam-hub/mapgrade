@@ -52,14 +52,6 @@ export class GameProgressRoutingService {
     }
     this.mapSocketIdByGameId.set(client.id, { gameId, userType: 'admin' });
   }
-
-  public setNextRound(gameId: string) {
-    const game = this.getGameProgressByGameId(gameId);
-    if (game) {
-      game.nextRound();
-    }
-  }
-
   public async connectUser(
     teamCode: number,
     client: Socket,
@@ -166,9 +158,6 @@ export class GameProgressRoutingService {
   }
   private getGameProgressByCodeGame(codeGame: number) {
     return this.games.find((g) => g.game.code === codeGame);
-  }
-  private createGameProgress(game: GameProgress) {
-    this.games.push(game);
   }
 
   setUserInfo(gameId: string, userGradeInfo: IUserGradeInfo) {
