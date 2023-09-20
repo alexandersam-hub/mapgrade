@@ -457,6 +457,7 @@ export class GameProgress {
   }
 
   public putGrade(userGrade: IGradePutMessage) {
+    console.log('!!!', userGrade);
     const staticsByPosition = this.statisticsResult.find(
       (sr) => sr.position === userGrade.position,
     );
