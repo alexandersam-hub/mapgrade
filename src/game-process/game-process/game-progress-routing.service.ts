@@ -173,7 +173,14 @@ export class GameProgressRoutingService {
       game.putGrade(userGrade);
     }
   }
-
+  putChoiceTypeUser(gameId: string, userCode: string, type: string) {
+    const game = this.getGameProgressByGameId(gameId);
+    if (game) {
+      game.putChoiceTypeUser(userCode, type);
+    } else {
+      throw new BadRequestException('игра не найдена');
+    }
+  }
   public disconnect(socketId: string) {
     const useData = this.mapSocketIdByGameId.get(socketId);
     if (!useData) return;

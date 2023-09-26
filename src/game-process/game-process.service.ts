@@ -43,6 +43,9 @@ export class GameProcessService {
   public putUserGrade(userGrade: IGradePutMessage) {
     this.gameProgressService.putUserGrade(userGrade);
   }
+  putChoiceTypeUser(gameId: string, userCode: string, type: string) {
+    this.gameProgressService.putChoiceTypeUser(gameId, userCode, type);
+  }
   public disconnect(socketId: string) {
     this.gameProgressService.disconnect(socketId);
   }

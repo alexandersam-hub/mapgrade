@@ -1,10 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import {
-  GameText,
-  IGame,
-  MapGame,
-  TemplateGame,
-} from '../domains/game.interface';
+import { IGame, MapGame, TemplateGame } from '../domains/game.interface';
+import { IDescriptionTask } from '../domains/description-task.interface';
 @Schema({
   toJSON: {
     transform(doc, ret) {
@@ -35,8 +31,6 @@ export class GameSchemaClass implements IGame {
   tasksSingle: string[];
   @Prop()
   templateGame: TemplateGame[];
-  @Prop({ type: Object })
-  texts: GameText;
   @Prop()
   title: string;
   @Prop()
@@ -53,6 +47,16 @@ export class GameSchemaClass implements IGame {
   isArchive: boolean;
   @Prop()
   isAutoTeam: boolean;
+  @Prop()
+  color: string;
+  @Prop({ type: Object })
+  descriptionsTasks: IDescriptionTask;
+  @Prop()
+  logoImg: string;
+  @Prop()
+  isViewTitleUser: boolean;
+  @Prop()
+  mapImg: string;
 }
 
 export const GameSchema = SchemaFactory.createForClass(GameSchemaClass);

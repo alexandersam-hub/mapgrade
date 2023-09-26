@@ -1,17 +1,14 @@
+import { IDescriptionTask } from './description-task.interface';
+
 export interface MapGame {
-  singleMap: number[];
-  doubleMap: number[];
+  singleMap: number[][];
+  doubleMap: number[][];
 }
 
 export interface TemplateGame {
   type: string;
   index: number;
   target: string;
-}
-
-export interface GameText {
-  startText: string;
-  finishText: string;
 }
 
 export interface IGame {
@@ -25,13 +22,17 @@ export interface IGame {
   master: string;
   tasksSingle: string[];
   tasksDouble: string[];
-  maps: MapGame;
-  templateGame: TemplateGame[];
-  texts: GameText;
+  maps: { singleMap: number[][]; doubleMap: number[][] };
+  templateGame: { type: string; index: number; target: string }[];
   code: number;
   image: string;
   isRequestUserGradeInfo: boolean;
   isUserTimerView: boolean;
   isArchive: boolean;
   isAutoTeam: boolean;
+  logoImg: string;
+  descriptionsTasks: IDescriptionTask;
+  color: string;
+  isViewTitleUser: boolean;
+  mapImg: string;
 }

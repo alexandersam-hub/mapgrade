@@ -77,6 +77,22 @@ export class GameProcessGateway implements OnGatewayDisconnect {
   getPing(client: Socket) {
     client.emit('ping', { message: 'pong' });
   }
+  @SubscribeMessage('choice-type-user')
+  putUserType(
+    client: Socket,
+    message: { game: string; type: string; user: string },
+  ) {
+    try {
+      this.gameProcessService.putChoiceTypeUser(
+        message.game,
+        message.user,
+        message.type,
+      );
+    } catch (e) {
+      console.log(e, message);
+      this.sendErrorMessage(client, e.message);
+    }
+  }
   @SubscribeMessage('user-grade-info')
   setUserGradeInfo(
     client: Socket,

@@ -15,6 +15,11 @@ import { IUserGradeInfo } from '../../user-grade-info/domains/user-grade-info.in
 import { IStatisticResult } from '../../statistic/domains/statistic.interface';
 import { StatisticService } from '../../statistic/statistic.service';
 
+export interface IUserTask extends ITask {
+  img?: string;
+  localTitle?: string;
+  link?: string;
+}
 export interface IRoundGrade {
   position: number;
   grade: IGrade;
@@ -31,6 +36,8 @@ export interface IGameInfoForAdmin {
   singleTasks: ITask[];
   doubleTasks: ITask[];
   roundGame: RoundGame;
+  map: string;
+  isViewTitle: boolean;
 }
 
 export interface IGameInfoForUser {
@@ -42,6 +49,10 @@ export interface IGameInfoForUser {
   isPause: boolean;
   image: string;
   isDouble: boolean;
+  basicColor: string;
+  logoImg: string;
+  map: string;
+  isViewTitle: boolean;
 }
 
 export interface IGameAndTask {
@@ -54,8 +65,8 @@ export interface IGameAndTask {
 export class RoundGame {
   roundNumber: number;
   grades: IRoundGrade[] = [];
-  singleTasks: ITask[];
-  doubleTasks: ITask[];
+  singleTasks: IUserTask[];
+  doubleTasks: IUserTask[];
 }
 
 export class GameProgress {
@@ -129,6 +140,15 @@ export class GameProgress {
         for (let i = 0; i < this.game.countTeam; i++) {
           this.roundGame.singleTasks[i] =
             this.singleTasks[this.game.maps.singleMap[i][this.currentRound]];
+          const descriptionCurrentTask = this.game.descriptionsTasks.task.find(
+            (t) => t.taskId === this.roundGame.singleTasks[i].id,
+          );
+          if (descriptionCurrentTask) {
+            this.roundGame.singleTasks[i].img = descriptionCurrentTask.img;
+            this.roundGame.singleTasks[i].link = descriptionCurrentTask.link;
+            this.roundGame.singleTasks[i].localTitle =
+              descriptionCurrentTask.title;
+          }
           if (
             this.game.isDouble &&
             this.currentRound % 2 === 0 &&
@@ -139,15 +159,27 @@ export class GameProgress {
               this.doubleTasks[
                 this.game.maps.doubleMap[i][this.currentRound / 2]
               ];
+
+            const descriptionCurrentTask =
+              this.game.descriptionsTasks.task.find(
+                (t) => t.taskId === this.roundGame.doubleTasks[i].id,
+              );
+            if (descriptionCurrentTask) {
+              this.roundGame.doubleTasks[i].img = descriptionCurrentTask.img;
+              this.roundGame.doubleTasks[i].link = descriptionCurrentTask.link;
+              this.roundGame.doubleTasks[i].localTitle =
+                descriptionCurrentTask.title;
+            }
           }
         }
         break;
 
       case 'start':
-        const startTask: ITask = new AdditionalTask(
+        const startTask: IUserTask = new AdditionalTask(
           'start',
-          this.game.texts.startText,
+          this.game.descriptionsTasks.start.text,
         );
+        startTask.img = this.game.descriptionsTasks.start.img;
         for (let i = 0; i < this.game.countTeam; i++) {
           this.roundGame.singleTasks[i] = startTask;
           if (this.game.isDouble) {
@@ -157,10 +189,11 @@ export class GameProgress {
         break;
 
       case 'finish':
-        const finishTask: ITask = new AdditionalTask(
+        const finishTask: IUserTask = new AdditionalTask(
           'finish',
-          this.game.texts.finishText,
+          this.game.descriptionsTasks.finish.text,
         );
+        finishTask.img = this.game.descriptionsTasks.finish.img
         this.isFinish = true;
         for (let i = 0; i < this.game.countTeam; i++) {
           this.roundGame.singleTasks[i] = finishTask;
@@ -210,7 +243,6 @@ export class GameProgress {
     client.emit('game', this.getGameInfo());
     client.emit('grade', this.statisticsResult);
   }
-
   private getGameInfoForUser(
     teamCode: number,
     type: string,
@@ -222,12 +254,16 @@ export class GameProgress {
         return {
           titleGame: this.game.title,
           isFinish: this.isFinish,
-          isStart: this.isFinish,
+          isStart: this.isStart,
           task: null,
           grade: grade,
           image: this.game.image,
           isPause: this.isPause,
           isDouble: this.game.isDouble,
+          basicColor: this.game.color,
+          logoImg: this.game.logoImg,
+          map: this.game.mapImg,
+          isViewTitle: this.game.isViewTitleUser,
         };
       }
     }
@@ -241,12 +277,16 @@ export class GameProgress {
     return {
       titleGame: this.game.title,
       isFinish: this.isFinish,
-      isStart: this.isFinish,
+      isStart: this.isStart,
       task: taskTeam,
       grade: null,
       image: this.game.image,
       isPause: this.isPause,
       isDouble: this.game.isDouble,
+      basicColor: this.game.color,
+      logoImg: this.game.logoImg,
+      map: this.game.mapImg,
+      isViewTitle: this.game.isViewTitleUser,
     };
   }
   public async connectUser(
@@ -307,9 +347,25 @@ export class GameProgress {
       roundGame: this.roundGame,
       isPause: this.isPause,
       isViewUserTimer: this.game.isUserTimerView,
+      map: this.game.mapImg,
+      isViewTitle: this.game.isViewTitleUser,
     };
   }
-
+  putChoiceTypeUser(userCode: string, type: string) {
+    const userSocket = this.getUserSocketByUserCode(userCode);
+    if (userSocket.socket) {
+      userSocket.userType = type;
+      const gameInfo = this.getGameInfoForUser(
+        userSocket.teamCode,
+        userSocket.userType,
+        userSocket.userCode,
+      );
+      userSocket.socket.emit('choice-type-user', { type });
+      userSocket.socket.emit('game', gameInfo);
+    } else {
+      throw new BadGatewayException('не удалось изменить тип');
+    }
+  }
   public startGame() {
     this.isStart = true;
     this.startTimer();
@@ -360,6 +416,8 @@ export class GameProgress {
     }
     this.time = 0;
     this.statisticsResult = [];
+    this.users = this.users.filter((us) => us.socket);
+    this.administrators = this.administrators.filter((a) => a.socket);
     this.sendGradesAdmins();
     this.preparationRound();
   }
@@ -388,6 +446,31 @@ export class GameProgress {
       time: this.game.timeRound * 60 - this.time,
     });
     if (this.game.isUserTimerView) {
+      this.sendTimeUsers();
+    }
+  }
+  private sendTimeUsers() {
+    if (this.game.isDouble) {
+      for (const userSocket of this.users) {
+        if (userSocket.socket) {
+          if (this.currentRound % 2 !== 0) {
+            this.sendMessageClient('time', userSocket, {
+              time: this.game.timeRound * 60 - this.time,
+            });
+          } else {
+            if (userSocket.userType === 'single') {
+              this.sendMessageClient('time', userSocket, {
+                time: this.game.timeRound * 60 - this.time,
+              });
+            } else {
+              this.sendMessageClient('time', userSocket, {
+                time: this.game.timeRound * 60 * 2 - this.time,
+              });
+            }
+          }
+        }
+      }
+    } else {
       this.sendMessageUsers('time', {
         time: this.game.timeRound * 60 - this.time,
       });
@@ -457,7 +540,6 @@ export class GameProgress {
   }
 
   public putGrade(userGrade: IGradePutMessage) {
-    console.log('!!!', userGrade);
     const staticsByPosition = this.statisticsResult.find(
       (sr) => sr.position === userGrade.position,
     );
@@ -486,7 +568,7 @@ export class GameProgress {
     }
     const userSocket = this.getUserSocketByUserCode(userGrade.user);
     //
-    if (userSocket.socket) {
+    if (userSocket && userSocket.socket) {
       const gameInfo = this.getGameInfoForUser(
         userSocket.teamCode,
         userSocket.userType,

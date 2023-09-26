@@ -35,13 +35,13 @@ export class GameController {
     throw new BadRequestException('неизвестный пользователь');
   }
   @Post()
-  createGame(@Body() task: GameDto) {
-    return this.gameService.create(task);
+  createGame(@Body() game: GameDto) {
+    return this.gameService.create(game);
   }
 
   @Put()
-  updateGame(@Body() task: GameDto) {
-    return this.gameService.update(task);
+  updateGame(@Body() game: GameDto) {
+    return this.gameService.update(game);
   }
 
   @Delete(':id')

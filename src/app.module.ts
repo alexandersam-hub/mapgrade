@@ -12,6 +12,7 @@ import { StatisticModule } from './statistic/statistic.module';
 import { UserGradeInfoModule } from './user-grade-info/user-grade-info.module';
 import { ImageRoutingModule } from './image-routing/image-routing.module';
 import { ExcelGenerateModule } from './excel-generate/excel-generate.module';
+import { TypeGameModule } from './type-game/type-game.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ExcelGenerateModule } from './excel-generate/excel-generate.module';
     GameProcessModule,
     StatisticModule,
     UserGradeInfoModule,
+    TypeGameModule,
   ],
   controllers: [AppController],
   providers: [AppService],

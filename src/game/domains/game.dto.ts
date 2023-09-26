@@ -1,5 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
-import { GameText, IGame, TemplateGame } from './game.interface';
+import { IGame, TemplateGame } from './game.interface';
+import { IDescriptionTask } from './description-task.interface';
 
 export class GameDto implements IGame {
   id: string;
@@ -7,7 +8,7 @@ export class GameDto implements IGame {
   timeRound: number;
   dateGame: string;
   isDouble: boolean;
-  maps: { singleMap: number[]; doubleMap: number[] };
+  maps: { singleMap: number[][]; doubleMap: number[][] };
   master: string;
   tasksDouble: string[];
   tasksSingle: string[];
@@ -16,11 +17,15 @@ export class GameDto implements IGame {
   @IsNotEmpty({ message: 'Не заполнено поле тип игры' })
   type: string;
   templateGame: TemplateGame[];
-  texts: GameText;
   code: number;
   image: string;
   isRequestUserGradeInfo: boolean;
   isUserTimerView: boolean;
   isArchive: boolean;
   isAutoTeam: boolean;
+  color: string;
+  descriptionsTasks: IDescriptionTask;
+  logoImg: string;
+  isViewTitleUser: boolean;
+  mapImg: string;
 }
