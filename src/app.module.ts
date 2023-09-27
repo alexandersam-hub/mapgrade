@@ -13,6 +13,7 @@ import { UserGradeInfoModule } from './user-grade-info/user-grade-info.module';
 import { ImageRoutingModule } from './image-routing/image-routing.module';
 import { ExcelGenerateModule } from './excel-generate/excel-generate.module';
 import { TypeGameModule } from './type-game/type-game.module';
+import { PdfCreateModule } from './pdf-create/pdf-create.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { TypeGameModule } from './type-game/type-game.module';
     StatisticModule,
     UserGradeInfoModule,
     TypeGameModule,
+    PdfCreateModule,
   ],
   controllers: [AppController],
   providers: [AppService],

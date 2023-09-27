@@ -56,4 +56,12 @@ export class GameProcessService {
   async loginGamerByCode(codeGame: number) {
     return this.gameProgressService.loginGamerByCode(codeGame);
   }
+
+  getGamesInfo() {
+    return this.gameProgressService.getGames();
+  }
+
+  deleteGame(gameId: string) {
+    return this.gameProgressService.deleteGame(gameId);
+  }
 }

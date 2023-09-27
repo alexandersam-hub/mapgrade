@@ -1,4 +1,12 @@
-import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { GameProcessService } from './game-process.service';
 
 @Controller('game-process')
@@ -10,5 +18,13 @@ export class GameProcessController {
     if (Number.isInteger(code)) {
       return await this.gameProgressService.loginGamerByCode(code);
     } else throw new BadRequestException('неверный формат кода игры');
+  }
+  @Get()
+  getGamesInfo() {
+    return this.gameProgressService.getGamesInfo();
+  }
+  @Delete(':id')
+  deleteGameInfo(@Param('id') id: string) {
+    return this.gameProgressService.deleteGame(id);
   }
 }

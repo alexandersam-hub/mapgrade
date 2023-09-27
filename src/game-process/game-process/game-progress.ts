@@ -335,7 +335,7 @@ export class GameProgress {
     return this.users.find((u) => u.userCode === userCode) ?? null;
   }
 
-  getGameInfo(): IGameInfoForAdmin {
+  public getGameInfo(): IGameInfoForAdmin {
     return {
       game: this.game,
       isStart: this.isStart,

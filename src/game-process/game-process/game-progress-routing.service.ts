@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { GameProgress, IGameAndTask } from './game-progress';
+import { GameProgress, IGameAndTask, IGameInfoForAdmin } from './game-progress';
 import { GameService } from '../../game/game.service';
 import { Socket } from 'socket.io';
 import { IUser } from '../../user/items/users.interface';
@@ -46,8 +46,13 @@ export class GameProgressRoutingService {
           this.userGradeInfoService,
           this.statisticService,
         );
-        this.games.push(newGameProgress);
-        newGameProgress.connectAdmin(client, user);
+        const gamePreload = this.getGameProgressByGameId(gameId);
+        if (!gamePreload) {
+          this.games.push(newGameProgress);
+          newGameProgress.connectAdmin(client, user);
+        } else {
+          await this.connectAdmin(user, client, gameId);
+        }
       }
     }
     this.mapSocketIdByGameId.set(client.id, { gameId, userType: 'admin' });
@@ -79,8 +84,18 @@ export class GameProgressRoutingService {
           this.userGradeInfoService,
           this.statisticService,
         );
-        this.games.push(newGameProgress);
-        await newGameProgress.connectUser(userCode, teamCode, client, userType);
+        const gamePreload = this.getGameProgressByGameId(gameId);
+        if (!gamePreload) {
+          this.games.push(newGameProgress);
+          await newGameProgress.connectUser(
+            userCode,
+            teamCode,
+            client,
+            userType,
+          );
+        } else {
+          await this.connectUser(teamCode, client, gameId, userCode, userType);
+        }
       }
     }
     this.mapSocketIdByGameId.set(client.id, { gameId, userType: 'user' });
@@ -141,7 +156,12 @@ export class GameProgressRoutingService {
           break;
         case 'refresh':
           const game = await this.gameService.getByGameId(gameId);
+          if (!game) throw new BadRequestException('нет игры');
           const gameData = await this.prepareGame(game);
+          if (!gameData)
+            throw new BadRequestException(
+              'не удалось загрузить данные об игре',
+            );
           gameProgress.refreshGame(
             gameData.game,
             gameData.singleTasks,
@@ -150,6 +170,8 @@ export class GameProgressRoutingService {
           );
           break;
       }
+    } else {
+      throw new BadRequestException('Нет игры. Перезагрзите страницу');
     }
   }
 
@@ -192,6 +214,13 @@ export class GameProgressRoutingService {
       game.disconnectUser(socketId);
     }
     this.mapSocketIdByGameId.delete(socketId);
+    // if (
+    //   game.isFinish &&
+    //   game.users.filter((u) => u.socket).length === 0 &&
+    //   game.administrators.filter((a) => a.socket).length === 0
+    // ) {
+    //   this.deleteGame(game.game.id);
+    // }
   }
 
   async loginGamerByCode(codeGame: number) {
@@ -215,5 +244,22 @@ export class GameProgressRoutingService {
       }
     }
     throw new BadRequestException('неверный код игры');
+  }
+  deleteGame(gameId: string) {
+    const game = this.games.find((g) => g.game.id === gameId);
+    if (game) {
+      game.stopGame();
+      game.sendMessageAdmin('error', { message: 'игра удалена' });
+      this.games = this.games.filter((g) => g.game.id !== gameId);
+    }
+    return this.games;
+  }
+  getGames(): IGameInfoForAdmin[] {
+    const gamesInfo: IGameInfoForAdmin[] = [];
+    for (const game of this.games) {
+      const g = game.getGameInfo();
+      gamesInfo.push(g);
+    }
+    return gamesInfo;
   }
 }

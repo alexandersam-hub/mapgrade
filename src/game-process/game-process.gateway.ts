@@ -53,14 +53,22 @@ export class GameProcessGateway implements OnGatewayDisconnect {
     }
   }
   @SubscribeMessage('control')
-  controlGame(
+  async controlGame(
     client: Socket,
     message: { game: string; master: string; command: string },
   ) {
-    if (message.command)
-      this.gameProcessService.controlGame(message.game, message.command);
-    else {
-      this.sendErrorMessage(client, 'нет команды');
+    try {
+      if (message.command)
+        await this.gameProcessService.controlGame(
+          message.game,
+          message.command,
+        );
+      else {
+        this.sendErrorMessage(client, 'нет команды');
+      }
+    } catch (e) {
+      console.log(e);
+      this.sendErrorMessage(client, e.message);
     }
   }
 
